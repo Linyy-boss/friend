@@ -3,70 +3,88 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>留言給我 / Say Hi 👋</title>
+  <title>和 Sleep Beast 打個招呼 💤</title>
   <style>
+    /*
+      新版樣式：LINE 風格對話框，配色使用：
+      - 杏仁白 Almond White: #F5E8DC  （你提供的值疑似少一碼，我採用常見的 #F5E8DC）
+      - 霧玫瑰 Misty Rose:   #A37070
+    */
     :root{
-      --bg:#0f172a; /* slate-900 */
-      --panel:#111827cc; /* semi */
-      --card:#111827; /* slate-900 */
-      --text:#e5e7eb; /* gray-200 */
-      --muted:#94a3b8; /* slate-400 */
-      --accent:#22d3ee; /* cyan-400 */
-      --ok:#34d399; /* green-400 */
-      --warn:#f59e0b; /* amber-500 */
-      --err:#f87171; /* red-400 */
+      --almond:#F5E8DC; /* 杏仁白 */
+      --rose:#A37070;   /* 霧玫瑰（帶一點灰感的玫瑰棕）*/
+      --ink:#3d3434;    /* 文字主色 */
+      --muted:#7b6f6f;  /* 次要文字 */
+      --shadow:0 10px 30px rgba(163,112,112,.18);
     }
     *{box-sizing:border-box}
     html,body{height:100%}
     body{
-      margin:0;background:linear-gradient(120deg,#0b1022,#121a35 40%,#0b1022);
-      color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,PingFang TC,\5FAE\8EDF\6B63\9ED1\9AD4,Noto Sans CJK TC,sans-serif;
+      margin:0;background:linear-gradient(160deg, var(--almond) 0%, #fff 60%);color:var(--ink);
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Microsoft JhengHei", "PingFang TC", sans-serif;
       display:flex;align-items:center;justify-content:center;padding:24px;
     }
-    .wrap{width:min(960px,100%);display:grid;grid-template-columns:1fr;gap:16px}
-    .hero{backdrop-filter: blur(8px);background:var(--panel);border:1px solid #1f2937;border-radius:20px;padding:20px}
-    h1{margin:0 0 8px;font-size:28px;letter-spacing:.5px}
-    p{margin:6px 0;color:var(--muted)}
-    .chat{height:64vh;min-height:440px;background:var(--card);border:1px solid #1f2937;border-radius:16px;display:flex;flex-direction:column;overflow:hidden}
-    .msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
-    .msg{max-width:80%;padding:10px 12px;border-radius:14px;line-height:1.4;border:1px solid #1f2937}
-    .me{align-self:flex-end;background:#0b3b44}
-    .bot{align-self:flex-start;background:#0f172a}
-    .sys{align-self:center;background:#0f172a99;color:var(--muted);font-size:12px}
-    .input{display:flex;gap:10px;padding:12px;border-top:1px solid #1f2937;background:#0b1022}
-    textarea{flex:1;resize:none;min-height:42px;max-height:120px;padding:10px 12px;border-radius:12px;border:1px solid #1f2937;background:#0f172a;color:var(--text)}
-    button{border:none;padding:10px 16px;border-radius:12px;font-weight:600;cursor:pointer;background:var(--accent);color:#001014}
-    button:disabled{opacity:.5;cursor:not-allowed}
-    .hint{font-size:12px;color:var(--muted)}
-    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#0b1022;border:1px solid #1f2937;color:var(--muted);font-size:12px}
-    .toprow{display:flex;align-items:center;justify-content:space-between;gap:8px}
-    .brand{display:flex;align-items:center;gap:10px}
-    .dot{width:8px;height:8px;border-radius:999px;background:var(--ok);box-shadow:0 0 10px var(--ok)}
-    .footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
-    .link{color:var(--accent);text-decoration:none}
+
+    .phone{
+      width:min(420px,100%);background:#fff;border-radius:28px;border:2px solid var(--rose);
+      box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
+    }
+    .topbar{
+      background:var(--rose);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;
+    }
+    .beast{width:26px;height:26px;display:inline-block}
+    .title{font-weight:700}
+    .subtitle{font-size:12px;opacity:.85}
+
+    .chat{background:#fff;display:flex;flex-direction:column;height:68vh;min-height:520px}
+    .msgs{flex:1;overflow:auto;padding:16px;background:var(--almond)}
+
+    .row{display:flex;align-items:flex-end;margin:8px 0;gap:8px}
+    .row.me{justify-content:flex-end}
+    .avatar{
+      width:34px;height:34px;border-radius:999px;background:#fff;border:2px solid var(--rose);display:flex;align-items:center;justify-content:center;overflow:hidden
+    }
+    .bubble{max-width:70%;padding:10px 12px;border-radius:18px;line-height:1.45;box-shadow:0 2px 0 rgba(0,0,0,.06)}
+    .bubble.bot{background:#fff;border:1px solid var(--rose)}
+    .bubble.me{background:var(--rose);color:#fff}
+
+    .sys{display:flex;justify-content:center;margin:10px 0}
+    .sys span{font-size:12px;color:var(--muted);background:#ffffffaa;border:1px dashed var(--rose);padding:4px 10px;border-radius:999px}
+
+    .input{display:flex;gap:10px;padding:12px;border-top:2px solid var(--rose);background:#fff}
+    textarea{flex:1;resize:none;min-height:42px;max-height:120px;padding:10px 12px;border-radius:16px;border:1px solid var(--rose);background:#fff;color:var(--ink)}
+    button{border:none;padding:10px 16px;border-radius:14px;font-weight:700;cursor:pointer;background:var(--rose);color:#fff}
+    button:disabled{opacity:.6;cursor:not-allowed}
+
+    .footer-note{padding:8px 16px;color:var(--muted);font-size:12px}
+    a{color:var(--rose);text-decoration:none}
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="hero">
-      <div class="toprow">
-        <div class="brand">
-          <div class="dot" aria-hidden></div>
-          <h1>你好！留個言給我吧 ✍️</h1>
-        </div>
-        <span class="badge" id="status">待命中</span>
-      </div>
-      <p>這裡展示的是我的作品。如果你想跟我說聲嗨、留下聯絡方式或給建議，直接在下面輸入就行。我會在展覽後一一查看。</p>
-      <div class="footer">
-        <span class="hint">你的留言會送到我的收件服務（不會公開顯示）。</span>
-        <a class="link" href="#" id="privacy">隱私說明</a>
+  <div class="phone" role="application" aria-label="Sleep Beast 留言視窗">
+    <div class="topbar">
+      <!-- 小吉祥物：Sleep Beast（簡單萌系 SVG） -->
+      <svg class="beast" viewBox="0 0 64 64" aria-hidden>
+        <circle cx="32" cy="32" r="28" fill="#fff" stroke="#FFEFE6" stroke-width="2"/>
+        <ellipse cx="32" cy="40" rx="16" ry="10" fill="#FFEFE6"/>
+        <circle cx="24" cy="30" r="4" fill="#3d3434"/>
+        <circle cx="40" cy="30" r="4" fill="#3d3434"/>
+        <path d="M22 44 q10 6 20 0" fill="none" stroke="#A37070" stroke-width="3" stroke-linecap="round"/>
+        <path d="M18 16 l8 6" stroke="#A37070" stroke-width="3" stroke-linecap="round"/>
+        <path d="M46 16 l-8 6" stroke="#A37070" stroke-width="3" stroke-linecap="round"/>
+        <path d="M44 10 q6 6 0 12" fill="none" stroke="#A37070" stroke-width="3" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="title">Sleep Beast 的小信箱</div>
+        <div class="subtitle">打聲招呼吧～我會回你一個可愛的打呼</div>
       </div>
     </div>
 
-    <div class="chat" role="application" aria-label="留言聊天視窗">
+    <div class="chat">
       <div id="msgs" class="msgs" aria-live="polite"></div>
+      <div class="footer-note">＊留言只會私下送到我的收件服務，不公開顯示。<a href="#" id="privacy">隱私說明</a></div>
       <form id="form" class="input">
-        <textarea id="text" placeholder="寫點什麼…（例如：你好，我是XXX，聯絡方式是…）" required></textarea>
+        <textarea id="text" placeholder="想說什麼都可以～（例：嗨，我是小王，可以加個朋友嗎？）" required></textarea>
         <button id="send" type="submit">送出</button>
       </form>
     </div>
@@ -74,67 +92,69 @@
 
   <script>
     // ====== 可調整區 ======
-    const WEBHOOK_URL = "https://your-webhook.example.com/guestbook"; // 你的後端收件 URL（Cloudflare Worker / Apps Script / Vercel Function）
-    const SHARED_KEY = "change-me"; // 簡單驗證字串，要與後端一致
+    const WEBHOOK_URL = "https://your-n8n.example.com/webhook/guestbook"; // n8n Production Webhook URL
+    const SHARED_KEY = "my-expo-2025"; // 要與 n8n IF 節點一致
+    const EXHIBITION_NAME = "BoothA-2025";
+
+    // 更輕鬆、友善、帶點幽默的回覆
     const BOT_REPLIES = [
-      "收到！很高興認識你 🤝",
-      "謝謝你的留言，我會盡快看看！",
-      "已投遞到我的口袋📨",
-      "感謝來到現場～祝你逛展愉快！",
+      "收到啦～Sleep Beast 正在打呼但有聽到你 😪💤",
+      "嘿嘿，感謝來逛！我把你的話塞進我的夢口袋了 ✨",
+      "寫得好可愛，我之後一定回（醒來就回 😴）",
+      "幫你傳好了！等我伸個懶腰再看 👋"
     ];
-    const EXHIBITION_NAME = "MyShow-2025"; // 方便你在後端辨識來源
 
     // ====== 元件 ======
     const msgs = document.getElementById('msgs');
     const form = document.getElementById('form');
     const text = document.getElementById('text');
     const sendBtn = document.getElementById('send');
-    const statusEl = document.getElementById('status');
 
-    // 簡單 localStorage 保留當天對話（電腦重整也在）
-    const STORAGE_KEY = 'guestbook_chat_v1';
-    function loadHistory(){
-      try{
-        const data = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
-        data.forEach(addBubble);
-      }catch(e){}
-    }
-    function saveBubble(b){
+    const STORAGE_KEY = 'guestbook_chat_v2';
+    const RETRY_KEY = 'guestbook_retry_v2';
+
+    function addRow(role, content){
+      const row = document.createElement('div');
+      row.className = 'row ' + (role==='user'?'me':'bot');
+      const avatar = document.createElement('div');
+      avatar.className = 'avatar';
+      if(role==='bot'){
+        avatar.innerHTML = '🐻‍❄️'; // 小獸的暱稱圖示（可換成圖片）
+      } else {
+        avatar.textContent = '你';
+      }
+      const b = document.createElement('div');
+      b.className = 'bubble ' + (role==='user'?'me':'bot');
+      b.textContent = content;
+
+      if(role==='bot') row.appendChild(avatar);
+      row.appendChild(b);
+      if(role==='user') row.appendChild(avatar);
+
+      msgs.appendChild(row);
+      msgs.scrollTop = msgs.scrollHeight;
+
+      // 存歷史
       const data = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
-      data.push(b);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.slice(-100))); // 最多留 100 則
+      data.push({role,text:content,time:Date.now()});
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.slice(-120)));
     }
 
-    // UI：建立氣泡
-    function addBubble({role, text, time}){
-      const div = document.createElement('div');
-      div.className = 'msg ' + (role==='user'?'me':role==='bot'?'bot':'sys');
-      div.textContent = text;
-      div.title = new Date(time).toLocaleString();
-      msgs.appendChild(div);
+    function systemTip(t){
+      const wrap = document.createElement('div');
+      wrap.className = 'sys';
+      const span = document.createElement('span');
+      span.textContent = t;
+      wrap.appendChild(span);
+      msgs.appendChild(wrap);
       msgs.scrollTop = msgs.scrollHeight;
     }
 
-    // 系統提示
-    function systemTip(t){
-      const b = {role:'system', text:t, time:Date.now()};
-      addBubble(b); saveBubble(b);
+    function loadHistory(){
+      try{(JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')).forEach(m=>addRow(m.role,m.text));}catch(e){}
+      systemTip('👋 嗨～丟一句話給我吧！');
     }
 
-    // 網路健康檢查（可選）
-    async function ping(){
-      try{
-        const ctrl = new AbortController();
-        const id = setTimeout(()=>ctrl.abort(),1500);
-        await fetch(WEBHOOK_URL+"/health",{signal:ctrl.signal});
-        clearTimeout(id);
-        statusEl.textContent = '可連線';
-      }catch(e){
-        statusEl.textContent = '離線展示模式';
-      }
-    }
-
-    // 傳送到你的後端
     async function sendToBackend(message){
       const payload = {
         key: SHARED_KEY,
@@ -145,74 +165,58 @@
         lang: navigator.language,
       };
       const res = await fetch(WEBHOOK_URL,{
-        method:'POST',
-        headers:{'Content-Type':'application/json'},
-        body: JSON.stringify(payload),
+        method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(payload)
       });
-      if(!res.ok){ throw new Error('deliver failed '+res.status); }
-      return await res.json().catch(()=>({ok:true}))
+      if(!res.ok) throw new Error('deliver failed '+res.status);
+      return await res.json().catch(()=>({ok:true}));
     }
 
-    // 表單送出
-    form.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      const value = text.value.trim();
-      if(!value) return;
-
-      // 1) 顧客訊息
-      const userBubble = {role:'user', text:value, time:Date.now()};
-      addBubble(userBubble); saveBubble(userBubble);
-      text.value='';
-
-      // 2) 機器人輕回覆（不用網路）
-      const reply = BOT_REPLIES[Math.floor(Math.random()*BOT_REPLIES.length)];
-      const botBubble = {role:'bot', text:reply, time:Date.now()};
-      addBubble(botBubble); saveBubble(botBubble);
-
-      // 3) 傳到後端（如果失敗，也不會卡住）
-      sendBtn.disabled = true;
-      try{
-        const r = await sendToBackend(value);
-        systemTip(r && r.ok? '已送達 ✅':'已送出（狀態未知）');
-      }catch(err){
-        systemTip('現在網路不穩，已暫存到本機。稍後自動再試。');
-        // 失敗就排入待重送
-        queueRetry(value);
-      }finally{
-        sendBtn.disabled = false;
-      }
-    });
-
-    // 失敗重送機制（每 20 秒嘗試一次）
-    const RETRY_KEY = 'guestbook_retry_v1';
     function queueRetry(msg){
       const q = JSON.parse(localStorage.getItem(RETRY_KEY)||'[]');
       q.push({msg, ts:Date.now()});
       localStorage.setItem(RETRY_KEY, JSON.stringify(q.slice(-50)));
     }
-    async function pump(){
+
+    setInterval(async ()=>{
       try{
         const q = JSON.parse(localStorage.getItem(RETRY_KEY)||'[]');
-        if(q.length===0) return;
-        const head = q[0];
-        await sendToBackend(head.msg);
+        if(!q.length) return;
+        await sendToBackend(q[0].msg);
         q.shift();
         localStorage.setItem(RETRY_KEY, JSON.stringify(q));
-        systemTip('已補送一則留言 ✅');
-      }catch(e){ /* 下次再試 */ }
-    }
-    setInterval(pump, 20000);
+        systemTip('補送成功 ✅');
+      }catch(e){}
+    }, 18000);
 
-    // 隱私說明
-    document.getElementById('privacy').addEventListener('click', (e)=>{
+    form.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      alert('這個頁面只會把你輸入的文字送到我的私人收件服務（例如 LINE 通知 / Google 試算表）。不會蒐集攝影機/地理位置，亦不會對外公開。');
+      const value = text.value.trim();
+      if(!value) return;
+
+      addRow('user', value);
+      text.value='';
+
+      // 可愛機器人回覆
+      const reply = BOT_REPLIES[Math.floor(Math.random()*BOT_REPLIES.length)];
+      setTimeout(()=>addRow('bot', reply), 300);
+
+      // 往後端送
+      sendBtn.disabled = true;
+      try{
+        const r = await sendToBackend(value);
+        systemTip(r && r.ok? '已送達！Sleep Beast 幫你保管中 🐾':'已送出（狀態未知）');
+      }catch(err){
+        systemTip('網路在打盹，先替你記下來，等會兒再送～');
+        queueRetry(value);
+      }finally{ sendBtn.disabled = false; }
     });
 
-    // 啟動
+    document.getElementById('privacy').addEventListener('click',(e)=>{
+      e.preventDefault();
+      alert('這個頁面只會把你輸入的文字私下傳給作者（透過 n8n / LINE），不會公開。也不會存取攝影機或定位。');
+    });
+
     loadHistory();
-    ping();
-    systemTip('👋 歡迎留言！');
   </script>
 </body>
 </html>
