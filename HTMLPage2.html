@@ -5,14 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>和 Sleep Beast 打個招呼 💤</title>
   <style>
-    /*
-      新版樣式：LINE 風格對話框，配色使用：
-      - 杏仁白 Almond White: #F5E8DC  （你提供的值疑似少一碼，我採用常見的 #F5E8DC）
-      - 霧玫瑰 Misty Rose:   #A37070
-    */
+    /* 主題：杏仁白 × 霧玫瑰（LINE 風格） */
     :root{
       --almond:#F5E8DC; /* 杏仁白 */
-      --rose:#A37070;   /* 霧玫瑰（帶一點灰感的玫瑰棕）*/
+      --rose:#A37070;   /* 霧玫瑰 */
       --ink:#3d3434;    /* 文字主色 */
       --muted:#7b6f6f;  /* 次要文字 */
       --shadow:0 10px 30px rgba(163,112,112,.18);
@@ -21,32 +17,30 @@
     html,body{height:100%}
     body{
       margin:0;background:linear-gradient(160deg, var(--almond) 0%, #fff 60%);color:var(--ink);
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Microsoft JhengHei", "PingFang TC", sans-serif;
+      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Microsoft JhengHei","PingFang TC", sans-serif;
       display:flex;align-items:center;justify-content:center;padding:24px;
     }
 
-    .phone{
-      width:min(420px,100%);background:#fff;border-radius:28px;border:2px solid var(--rose);
-      box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;
-    }
-    .topbar{
-      background:var(--rose);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;
-    }
+    .phone{width:min(420px,100%);background:#fff;border-radius:28px;border:2px solid var(--rose);
+      box-shadow:var(--shadow);overflow:hidden;display:flex;flex-direction:column;}
+    .topbar{background:var(--rose);color:#fff;padding:14px 16px;display:flex;align-items:center;gap:10px;}
     .beast{width:26px;height:26px;display:inline-block}
     .title{font-weight:700}
     .subtitle{font-size:12px;opacity:.85}
 
     .chat{background:#fff;display:flex;flex-direction:column;height:68vh;min-height:520px}
     .msgs{flex:1;overflow:auto;padding:16px;background:var(--almond)}
+    .msgs::-webkit-scrollbar{width:8px}
+    .msgs::-webkit-scrollbar-thumb{background:#d6c2bb;border-radius:6px}
 
     .row{display:flex;align-items:flex-end;margin:8px 0;gap:8px}
     .row.me{justify-content:flex-end}
-    .avatar{
-      width:34px;height:34px;border-radius:999px;background:#fff;border:2px solid var(--rose);display:flex;align-items:center;justify-content:center;overflow:hidden
-    }
+    .avatar{width:34px;height:34px;border-radius:999px;background:#fff;border:2px solid var(--rose);
+      display:flex;align-items:center;justify-content:center;overflow:hidden}
     .bubble{max-width:70%;padding:10px 12px;border-radius:18px;line-height:1.45;box-shadow:0 2px 0 rgba(0,0,0,.06)}
     .bubble.bot{background:#fff;border:1px solid var(--rose)}
     .bubble.me{background:var(--rose);color:#fff}
+    .status{font-size:12px;color:#fff;opacity:.9;margin-left:8px}
 
     .sys{display:flex;justify-content:center;margin:10px 0}
     .sys span{font-size:12px;color:var(--muted);background:#ffffffaa;border:1px dashed var(--rose);padding:4px 10px;border-radius:999px}
@@ -92,40 +86,49 @@
 
   <script>
     // ====== 可調整區 ======
-    const WEBHOOK_URL = "https://linyy.app.n8n.cloud/webhook-test/friend"; // n8n Production Webhook URL
-    const SHARED_KEY = "my-expo-2025"; // 要與 n8n IF 節點一致
+    const WEBHOOK_URL = "https://linyy.app.n8n.cloud/webhook-test/friend"; // n8n Webhook URL
+    const SHARED_KEY   = "my-expo-2025";  // 要與 n8n IF 一致
     const EXHIBITION_NAME = "BoothA-2025";
 
-    // 更輕鬆、友善、帶點幽默的回覆
+    // 輕鬆可愛回覆
     const BOT_REPLIES = [
       "收到啦～Sleep Beast 正在打呼但有聽到你 😪💤",
-      "嘿嘿，感謝來逛！我把你的話塞進我的夢口袋了 ✨",
-      "寫得好可愛，我之後一定回（醒來就回 😴）",
-      "幫你傳好了！等我伸個懶腰再看 👋"
+      "嘿嘿，感謝來逛！我把你的話塞進夢口袋 ✨",
+      "寫得好可愛，我等會伸個懶腰就回 😴",
+      "幫你送到了！去喝口水再看 👋"
     ];
 
-    // ====== 元件 ======
+    // ====== DOM ======
     const msgs = document.getElementById('msgs');
     const form = document.getElementById('form');
     const text = document.getElementById('text');
     const sendBtn = document.getElementById('send');
 
-    const STORAGE_KEY = 'guestbook_chat_v2';
-    const RETRY_KEY = 'guestbook_retry_v2';
+    // ====== 工具 ======
+    function uid(){ return String(Date.now()) + '-' + Math.random().toString(16).slice(2); }
 
-    function addRow(role, content){
+    function addRow(role, content, {id, note} = {}){
       const row = document.createElement('div');
       row.className = 'row ' + (role==='user'?'me':'bot');
+      if(id) row.dataset.id = id;
+
       const avatar = document.createElement('div');
       avatar.className = 'avatar';
-      if(role==='bot'){
-        avatar.innerHTML = '🐻‍❄️'; // 小獸的暱稱圖示（可換成圖片）
-      } else {
-        avatar.textContent = '你';
-      }
+      if(role==='bot') avatar.innerHTML = '🐻‍❄️'; else avatar.textContent = '你';
+
       const b = document.createElement('div');
       b.className = 'bubble ' + (role==='user'?'me':'bot');
       b.textContent = content;
+
+      if (role==='me' || role==='user') {
+        // optional status chip for user's bubble
+        if (note){
+          const s = document.createElement('span');
+          s.className = 'status';
+          s.textContent = note;
+          b.appendChild(s);
+        }
+      }
 
       if(role==='bot') row.appendChild(avatar);
       row.appendChild(b);
@@ -133,11 +136,7 @@
 
       msgs.appendChild(row);
       msgs.scrollTop = msgs.scrollHeight;
-
-      // 存歷史
-      const data = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
-      data.push({role,text:content,time:Date.now()});
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.slice(-120)));
+      return row;
     }
 
     function systemTip(t){
@@ -148,18 +147,15 @@
       wrap.appendChild(span);
       msgs.appendChild(wrap);
       msgs.scrollTop = msgs.scrollHeight;
+      return wrap;
     }
 
-    function loadHistory(){
-      try{(JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]')).forEach(m=>addRow(m.role,m.text));}catch(e){}
-      systemTip('👋 嗨～丟一句話給我吧！');
-    }
-
-    async function sendToBackend(message){
+    async function sendToBackend(message, msgId){
       const payload = {
         key: SHARED_KEY,
         source: EXHIBITION_NAME,
         message,
+        msgId,
         ts: Date.now(),
         ua: navigator.userAgent,
         lang: navigator.language,
@@ -171,52 +167,77 @@
       return await res.json().catch(()=>({ok:true}));
     }
 
-    function queueRetry(msg){
+    // 失敗佇列（會記錄 msg 與對應的 row id，補送成功會把 row 移除）
+    const RETRY_KEY = 'guestbook_retry_v3';
+    function queueRetry(msg, id){
       const q = JSON.parse(localStorage.getItem(RETRY_KEY)||'[]');
-      q.push({msg, ts:Date.now()});
+      q.push({msg, id, ts:Date.now()});
       localStorage.setItem(RETRY_KEY, JSON.stringify(q.slice(-50)));
     }
 
+    // 背景補送：成功就移除畫面上的那則訊息
     setInterval(async ()=>{
       try{
         const q = JSON.parse(localStorage.getItem(RETRY_KEY)||'[]');
         if(!q.length) return;
-        await sendToBackend(q[0].msg);
+        const item = q[0];
+        await sendToBackend(item.msg, item.id);
         q.shift();
         localStorage.setItem(RETRY_KEY, JSON.stringify(q));
+        // 移除畫面上的那則（如果還在）
+        const row = document.querySelector(`[data-id="${item.id}"]`);
+        if(row) row.remove();
         systemTip('補送成功 ✅');
       }catch(e){}
-    }, 18000);
+    }, 15000);
 
+    // 初始提示
+    systemTip('👋 嗨～丟一句話給我吧！');
+
+    // 表單送出
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       const value = text.value.trim();
       if(!value) return;
 
-      addRow('user', value);
-      text.value='';
-
-      // 可愛機器人回覆
-      const reply = BOT_REPLIES[Math.floor(Math.random()*BOT_REPLIES.length)];
-      setTimeout(()=>addRow('bot', reply), 300);
-
-      // 往後端送
+      // 先把輸入框清空
+      text.value = '';
       sendBtn.disabled = true;
+
+      // 先把使用者訊息與可愛回覆放上去（暫時）
+      const id = uid();
+      const userRow = addRow('user', value, {id, note:'傳送中…'});
+      const replyText = BOT_REPLIES[Math.floor(Math.random()*BOT_REPLIES.length)];
+      const botRow = setTimeout(()=>addRow('bot', replyText), 250);
+
       try{
-        const r = await sendToBackend(value);
-        systemTip(r && r.ok? '已送達！Sleep Beast 幫你保管中 🐾':'已送出（狀態未知）');
+        const r = await sendToBackend(value, id);
+        // 成功：把剛剛那兩個泡泡移除，改顯示「已送達」
+        clearTimeout(botRow);
+        const userEl = document.querySelector(`[data-id="${id}"]`);
+        if(userEl) userEl.remove();
+        systemTip('已送達 ✅ Sleep Beast 幫你保管中');
       }catch(err){
+        // 失敗：保留你的氣泡，加上「等待補送」，排進重送
+        const userEl = document.querySelector(`[data-id="${id}"] .bubble`);
+        if(userEl){
+          const s = document.createElement('span');
+          s.className = 'status';
+          s.textContent = '（等待補送）';
+          userEl.appendChild(s);
+        }
+        queueRetry(value, id);
         systemTip('網路在打盹，先替你記下來，等會兒再送～');
-        queueRetry(value);
-      }finally{ sendBtn.disabled = false; }
+      }finally{
+        sendBtn.disabled = false;
+      }
     });
 
+    // 隱私說明
     document.getElementById('privacy').addEventListener('click',(e)=>{
       e.preventDefault();
-      alert('這個頁面只會把你輸入的文字私下傳給作者（透過 n8n / LINE），不會公開。也不會存取攝影機或定位。');
+      alert('這個頁面只會把你輸入的文字私下傳給作者（透過 n8n / LINE），不會公開或儲存在這個頁面上。若網路暫時不穩，會自動補送。');
     });
-
-    loadHistory();
   </script>
 </body>
 </html>
