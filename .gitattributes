@@ -1,2 +1,218 @@
-# Auto detect text files and perform LF normalization
-* text=auto
+﻿<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>留言給我 / Say Hi 👋</title>
+  <style>
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --panel:#111827cc; /* semi */
+      --card:#111827; /* slate-900 */
+      --text:#e5e7eb; /* gray-200 */
+      --muted:#94a3b8; /* slate-400 */
+      --accent:#22d3ee; /* cyan-400 */
+      --ok:#34d399; /* green-400 */
+      --warn:#f59e0b; /* amber-500 */
+      --err:#f87171; /* red-400 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;background:linear-gradient(120deg,#0b1022,#121a35 40%,#0b1022);
+      color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,PingFang TC,\5FAE\8EDF\6B63\9ED1\9AD4,Noto Sans CJK TC,sans-serif;
+      display:flex;align-items:center;justify-content:center;padding:24px;
+    }
+    .wrap{width:min(960px,100%);display:grid;grid-template-columns:1fr;gap:16px}
+    .hero{backdrop-filter: blur(8px);background:var(--panel);border:1px solid #1f2937;border-radius:20px;padding:20px}
+    h1{margin:0 0 8px;font-size:28px;letter-spacing:.5px}
+    p{margin:6px 0;color:var(--muted)}
+    .chat{height:64vh;min-height:440px;background:var(--card);border:1px solid #1f2937;border-radius:16px;display:flex;flex-direction:column;overflow:hidden}
+    .msgs{flex:1;overflow:auto;padding:16px;display:flex;flex-direction:column;gap:10px;scroll-behavior:smooth}
+    .msg{max-width:80%;padding:10px 12px;border-radius:14px;line-height:1.4;border:1px solid #1f2937}
+    .me{align-self:flex-end;background:#0b3b44}
+    .bot{align-self:flex-start;background:#0f172a}
+    .sys{align-self:center;background:#0f172a99;color:var(--muted);font-size:12px}
+    .input{display:flex;gap:10px;padding:12px;border-top:1px solid #1f2937;background:#0b1022}
+    textarea{flex:1;resize:none;min-height:42px;max-height:120px;padding:10px 12px;border-radius:12px;border:1px solid #1f2937;background:#0f172a;color:var(--text)}
+    button{border:none;padding:10px 16px;border-radius:12px;font-weight:600;cursor:pointer;background:var(--accent);color:#001014}
+    button:disabled{opacity:.5;cursor:not-allowed}
+    .hint{font-size:12px;color:var(--muted)}
+    .badge{display:inline-flex;align-items:center;gap:6px;padding:6px 10px;border-radius:999px;background:#0b1022;border:1px solid #1f2937;color:var(--muted);font-size:12px}
+    .toprow{display:flex;align-items:center;justify-content:space-between;gap:8px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .dot{width:8px;height:8px;border-radius:999px;background:var(--ok);box-shadow:0 0 10px var(--ok)}
+    .footer{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+    .link{color:var(--accent);text-decoration:none}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="hero">
+      <div class="toprow">
+        <div class="brand">
+          <div class="dot" aria-hidden></div>
+          <h1>你好！留個言給我吧 ✍️</h1>
+        </div>
+        <span class="badge" id="status">待命中</span>
+      </div>
+      <p>這裡展示的是我的作品。如果你想跟我說聲嗨、留下聯絡方式或給建議，直接在下面輸入就行。我會在展覽後一一查看。</p>
+      <div class="footer">
+        <span class="hint">你的留言會送到我的收件服務（不會公開顯示）。</span>
+        <a class="link" href="#" id="privacy">隱私說明</a>
+      </div>
+    </div>
+
+    <div class="chat" role="application" aria-label="留言聊天視窗">
+      <div id="msgs" class="msgs" aria-live="polite"></div>
+      <form id="form" class="input">
+        <textarea id="text" placeholder="寫點什麼…（例如：你好，我是XXX，聯絡方式是…）" required></textarea>
+        <button id="send" type="submit">送出</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    // ====== 可調整區 ======
+    const WEBHOOK_URL = "https://your-webhook.example.com/guestbook"; // 你的後端收件 URL（Cloudflare Worker / Apps Script / Vercel Function）
+    const SHARED_KEY = "change-me"; // 簡單驗證字串，要與後端一致
+    const BOT_REPLIES = [
+      "收到！很高興認識你 🤝",
+      "謝謝你的留言，我會盡快看看！",
+      "已投遞到我的口袋📨",
+      "感謝來到現場～祝你逛展愉快！",
+    ];
+    const EXHIBITION_NAME = "MyShow-2025"; // 方便你在後端辨識來源
+
+    // ====== 元件 ======
+    const msgs = document.getElementById('msgs');
+    const form = document.getElementById('form');
+    const text = document.getElementById('text');
+    const sendBtn = document.getElementById('send');
+    const statusEl = document.getElementById('status');
+
+    // 簡單 localStorage 保留當天對話（電腦重整也在）
+    const STORAGE_KEY = 'guestbook_chat_v1';
+    function loadHistory(){
+      try{
+        const data = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+        data.forEach(addBubble);
+      }catch(e){}
+    }
+    function saveBubble(b){
+      const data = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+      data.push(b);
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data.slice(-100))); // 最多留 100 則
+    }
+
+    // UI：建立氣泡
+    function addBubble({role, text, time}){
+      const div = document.createElement('div');
+      div.className = 'msg ' + (role==='user'?'me':role==='bot'?'bot':'sys');
+      div.textContent = text;
+      div.title = new Date(time).toLocaleString();
+      msgs.appendChild(div);
+      msgs.scrollTop = msgs.scrollHeight;
+    }
+
+    // 系統提示
+    function systemTip(t){
+      const b = {role:'system', text:t, time:Date.now()};
+      addBubble(b); saveBubble(b);
+    }
+
+    // 網路健康檢查（可選）
+    async function ping(){
+      try{
+        const ctrl = new AbortController();
+        const id = setTimeout(()=>ctrl.abort(),1500);
+        await fetch(WEBHOOK_URL+"/health",{signal:ctrl.signal});
+        clearTimeout(id);
+        statusEl.textContent = '可連線';
+      }catch(e){
+        statusEl.textContent = '離線展示模式';
+      }
+    }
+
+    // 傳送到你的後端
+    async function sendToBackend(message){
+      const payload = {
+        key: SHARED_KEY,
+        source: EXHIBITION_NAME,
+        message,
+        ts: Date.now(),
+        ua: navigator.userAgent,
+        lang: navigator.language,
+      };
+      const res = await fetch(WEBHOOK_URL,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(payload),
+      });
+      if(!res.ok){ throw new Error('deliver failed '+res.status); }
+      return await res.json().catch(()=>({ok:true}))
+    }
+
+    // 表單送出
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const value = text.value.trim();
+      if(!value) return;
+
+      // 1) 顧客訊息
+      const userBubble = {role:'user', text:value, time:Date.now()};
+      addBubble(userBubble); saveBubble(userBubble);
+      text.value='';
+
+      // 2) 機器人輕回覆（不用網路）
+      const reply = BOT_REPLIES[Math.floor(Math.random()*BOT_REPLIES.length)];
+      const botBubble = {role:'bot', text:reply, time:Date.now()};
+      addBubble(botBubble); saveBubble(botBubble);
+
+      // 3) 傳到後端（如果失敗，也不會卡住）
+      sendBtn.disabled = true;
+      try{
+        const r = await sendToBackend(value);
+        systemTip(r && r.ok? '已送達 ✅':'已送出（狀態未知）');
+      }catch(err){
+        systemTip('現在網路不穩，已暫存到本機。稍後自動再試。');
+        // 失敗就排入待重送
+        queueRetry(value);
+      }finally{
+        sendBtn.disabled = false;
+      }
+    });
+
+    // 失敗重送機制（每 20 秒嘗試一次）
+    const RETRY_KEY = 'guestbook_retry_v1';
+    function queueRetry(msg){
+      const q = JSON.parse(localStorage.getItem(RETRY_KEY)||'[]');
+      q.push({msg, ts:Date.now()});
+      localStorage.setItem(RETRY_KEY, JSON.stringify(q.slice(-50)));
+    }
+    async function pump(){
+      try{
+        const q = JSON.parse(localStorage.getItem(RETRY_KEY)||'[]');
+        if(q.length===0) return;
+        const head = q[0];
+        await sendToBackend(head.msg);
+        q.shift();
+        localStorage.setItem(RETRY_KEY, JSON.stringify(q));
+        systemTip('已補送一則留言 ✅');
+      }catch(e){ /* 下次再試 */ }
+    }
+    setInterval(pump, 20000);
+
+    // 隱私說明
+    document.getElementById('privacy').addEventListener('click', (e)=>{
+      e.preventDefault();
+      alert('這個頁面只會把你輸入的文字送到我的私人收件服務（例如 LINE 通知 / Google 試算表）。不會蒐集攝影機/地理位置，亦不會對外公開。');
+    });
+
+    // 啟動
+    loadHistory();
+    ping();
+    systemTip('👋 歡迎留言！');
+  </script>
+</body>
+</html>
