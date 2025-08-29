@@ -84,7 +84,7 @@
       <div id="msgs" class="msgs" aria-live="polite"></div>
       <div class="footer-note">＊留言只會私下送到我的收件服務，不公開顯示。<a href="#" id="privacy">隱私說明</a></div>
       <form id="form" class="input">
-        <textarea id="text" placeholder="想說什麼都可以～" required></textarea>
+        <textarea id="text" placeholder="想說什麼都可以～（例：嗨，我是小王，可以加個朋友嗎？）" required></textarea>
         <button id="send" type="submit">送出</button>
       </form>
     </div>
@@ -92,7 +92,7 @@
 
   <script>
     // ====== 可調整區 ======
-    const WEBHOOK_URL = "https://linyy.app.n8n.cloud/webhook-test/friends"; // n8n Production Webhook URL
+    const WEBHOOK_URL = "https://your-n8n.example.com/webhook/guestbook"; // n8n Production Webhook URL
     const SHARED_KEY = "my-expo-2025"; // 要與 n8n IF 節點一致
     const EXHIBITION_NAME = "BoothA-2025";
 
