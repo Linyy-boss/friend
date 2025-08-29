@@ -107,7 +107,7 @@
       try{
         await sendToBackend(value);
         // 成功後提醒使用者需要重新整理來清空
-        addRow('bot','✅ 已送達！請重新整理頁面開始新的留言。');
+        addRow('bot','✅ 感謝你的回應！我們這場戰鬥勝利啦！✌️ 訊息已經投遞成功～快去刷新頁面，不然我們的秘密訊號會被人發現哦！');
       }catch(err){
         addRow('bot','⚠️ 網路不穩，稍後再試。');
       }finally{
